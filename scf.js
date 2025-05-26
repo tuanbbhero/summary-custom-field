@@ -1,1 +1,61 @@
-var tpProjectCustomFields=function(){var a=document.querySelectorAll('.summary-item');if(a.length>0){var b=a.length,c=5,d=500;function e(f){var g=Math.min(f+c,b);for(var h=f;h<g;h++){(function(i){var j=a[i],k=j.querySelector('a.summary-title-link');if(k){var l=k.getAttribute('href'),m=k.previousElementSibling;if(l&&(!m||!m.classList.contains('summary-custom-field'))){var n='?nocache='+new Date().getTime()+Math.random();fetch(l+n).then(function(o){return o.text()}).then(function(p){var q=new DOMParser(),r=q.parseFromString(p,'text/html'),s=r.querySelector('p.custom-field');if(s){var t=j.querySelector('a.summary-title-link');if(t&&j.contains(t)){var v=t.previousElementSibling;if(!v||!v.classList.contains('summary-custom-field')){var u=s.cloneNode(true);u.classList.add('summary-custom-field');u.style.opacity='0.8';j.insertBefore(u,t)}}}})}}})(h)}if(g<b){setTimeout(function(){e(g)},d)}}e(0)}},tpCustomFieldsInitialized=false;function initializeCustomFields(){if(!tpCustomFieldsInitialized){tpCustomFieldsInitialized=true;setTimeout(function(){tpProjectCustomFields()},1000)}}document.addEventListener('DOMContentLoaded',function(){initializeCustomFields()});window.addEventListener('load',function(){initializeCustomFields()});
+var tpProjectCustomFields = function() {
+  if ($('.summary-item').length > 0) {
+    var tpSummaryItems = $('.summary-item');
+    var totalItems = tpSummaryItems.length;
+    var batchSize = 5;
+    var delayBetweenBatches = 500;
+    
+    function processBatch(startIndex) {
+      var endIndex = Math.min(startIndex + batchSize, totalItems);
+      
+      for (var i = startIndex; i < endIndex; i++) {
+        (function(index) {
+          var tpSummaryItem = $(tpSummaryItems[index]);
+          var tpSummaryLink = tpSummaryItem.find('a.summary-title-link');
+          var tpProjectUrl = tpSummaryLink.attr('href');
+          
+          if (tpProjectUrl && tpSummaryLink.length && tpSummaryLink.prev('.summary-custom-field').length === 0) {
+            var cacheBuster = '?nocache=' + new Date().getTime() + Math.random();
+            $.get(tpProjectUrl + cacheBuster, function(tpData) {
+              var tpCustomField = $(tpData).find('p.custom-field').clone();
+              
+              if (tpCustomField.length) {
+                if (tpSummaryLink.prev('.summary-custom-field').length === 0) {
+                  tpCustomField.addClass('summary-custom-field');
+                  tpSummaryLink.before(tpCustomField);
+                  
+                  tpCustomField.css({
+                    'opacity': '0.8'
+                  });
+                }
+              }
+            });
+          }
+        })(i);
+      }
+      
+      if (endIndex < totalItems) {
+        setTimeout(function() {
+          processBatch(endIndex);
+        }, delayBetweenBatches);
+      }
+    }
+    
+    processBatch(0);
+  }
+};
+var tpCustomFieldsInitialized = false;
+function initializeCustomFields() {
+  if (!tpCustomFieldsInitialized) {
+    tpCustomFieldsInitialized = true;
+    setTimeout(function() {
+      tpProjectCustomFields();
+    }, 1000);
+  }
+}
+$(document).ready(function() {
+  initializeCustomFields();
+});
+$(window).on('load', function() {
+  initializeCustomFields();
+});
